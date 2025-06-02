@@ -18,29 +18,36 @@ namespace TrueUnleveledSkyrim.Patch
 
         private static void UnlevelZone(EncounterZone encZone, ZoneEntry zoneDefinition)
         {
-            encZone.Flags.SetFlag(EncounterZone.Flag.MatchPcBelowMinimumLevel, false);
-            if(zoneDefinition.EnableCombatBoundary is not null)
-                encZone.Flags.SetFlag(EncounterZone.Flag.DisableCombatBoundary, !(bool)zoneDefinition.EnableCombatBoundary);
+    encZone.Flags.SetFlag(EncounterZone.Flag.MatchPcBelowMinimumLevel, false);
+    if (zoneDefinition.EnableCombatBoundary is not null)
+        encZone.Flags.SetFlag(EncounterZone.Flag.DisableCombatBoundary, !(bool)zoneDefinition.EnableCombatBoundary);
 
-            if (Patcher.ModSettings.Value.Zones.StaticZoneLevels)
-            {
-                encZone.MinLevel = (byte)Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MaxLevel);
-                encZone.MaxLevel = encZone.MinLevel;
-            }
-            else
-            {
-                if (zoneDefinition.MaxLevel == 0)
-                {
-                    encZone.MinLevel = (byte)Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MinLevel + zoneDefinition.Range);
-                    encZone.MaxLevel = 0;
-                }
-                else
-                {
-                    encZone.MinLevel = (byte)Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MaxLevel - zoneDefinition.Range + 1);
-                    encZone.MaxLevel = (byte)(encZone.MinLevel + zoneDefinition.Range);
-                }
-            }
+    if (Patcher.ModSettings.Value.Zones.StaticZoneLevels)
+    {
+        int level = Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MaxLevel);
+        if (level < 0) level = 0;
+        encZone.MinLevel = (byte)level;
+        encZone.MaxLevel = encZone.MinLevel;
+    }
+    else
+    {
+        if (zoneDefinition.MaxLevel == 0)
+        {
+            int level = Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MinLevel + zoneDefinition.Range);
+            if (level < 0) level = 0;
+            encZone.MinLevel = (byte)level;
+            encZone.MaxLevel = 0;
         }
+        else
+        {
+            int level = Patcher.Randomizer.Next(zoneDefinition.MinLevel, zoneDefinition.MaxLevel - zoneDefinition.Range + 1);
+            if (level < 0) level = 0;
+            encZone.MinLevel = (byte)level;
+            encZone.MaxLevel = (byte)(encZone.MinLevel + zoneDefinition.Range);
+        }
+    }
+}
+
 
         private static bool PatchZonesByKeyword(EncounterZone encZone, ILinkCache linkCache)
         {
